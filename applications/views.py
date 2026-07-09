@@ -56,19 +56,29 @@ Please click this link to activate your account:
 If you did not create this account, you can ignore this email.
 """
 
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=False,
+                )
 
-            messages.success(
-                request,
-                'Account created. Please check your email to activate your account.'
-            )
-            return redirect('login')
+                messages.success(
+                    request,
+                    'Account created. Please check your email to activate your account.'
+                )
+                return redirect('login')
+
+            except Exception as error:
+                user.delete()
+                messages.error(
+                    request,
+                    'Account was not created because the verification email could not be sent. Please try again later.'
+                )
+                print("EMAIL ERROR:", error)
+
     else:
         form = RegisterForm()
 
