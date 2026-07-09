@@ -30,7 +30,12 @@ ALLOWED_HOSTS = [
     'localhost',
     '.onrender.com',
 ]
+CSRF_TRUSTED_ORIGINS = [
+    'https://job-application-tracker-1-8gk2.onrender.com',
+    'https://*.onrender.com',
+]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
@@ -139,3 +144,4 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     'DEFAULT_FROM_EMAIL',
     EMAIL_HOST_USER or 'noreply@jobtracker.com'
 )
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 10))
