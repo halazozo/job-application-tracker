@@ -2,11 +2,35 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
 
 from .models import JobApplication
 from .forms import JobApplicationForm
 
+def landing(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
 
+    return render(request, 'applications/landing.html')
+
+
+def register(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Account created successfully.')
+            return redirect('dashboard')
+    else:
+        form = UserCreationForm()
+
+    return render(request, 'registration/register.html', {'form': form})
 @login_required
 def dashboard(request):
     applications = JobApplication.objects.filter(user=request.user).order_by('-created_at')

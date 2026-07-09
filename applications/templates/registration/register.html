@@ -1,0 +1,74 @@
+{% extends 'applications/base.html' %}
+
+{% block content %}
+
+<div class="auth-card bg-white mt-5">
+    <div class="auth-top">
+        <div class="brand-circle mx-auto mb-3">
+            <i class="bi bi-person-plus-fill"></i>
+        </div>
+
+        <h2 class="fw-bold mb-1">Create Account</h2>
+        <p class="mb-0 opacity-75">
+            Start tracking your job applications.
+        </p>
+    </div>
+
+    <div class="p-4">
+        {% if form.errors %}
+            <div class="alert alert-danger rounded-4">
+                Please check your username and password.
+                <br>
+                Password must not be too simple.
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Username</label>
+                <input
+                    type="text"
+                    name="username"
+                    class="form-control"
+                    placeholder="Choose a username"
+                    required
+                >
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Password</label>
+                <input
+                    type="password"
+                    name="password1"
+                    class="form-control"
+                    placeholder="Choose a password"
+                    required
+                >
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Confirm Password</label>
+                <input
+                    type="password"
+                    name="password2"
+                    class="form-control"
+                    placeholder="Repeat your password"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 btn-rounded py-2 fw-semibold">
+                Create Account
+            </button>
+        </form>
+
+        <p class="text-center text-muted mt-4 mb-0">
+            Already have an account?
+            <a href="{% url 'login' %}">Login here</a>
+        </p>
+    </div>
+</div>
+
+{% endblock %}
