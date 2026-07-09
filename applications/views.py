@@ -2,11 +2,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.conf import settings
+from django.urls import reverse
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 
 from .models import JobApplication
-from .forms import JobApplicationForm
+from .forms import JobApplicationForm, RegisterForm
 
 def landing(request):
     if request.user.is_authenticated:
@@ -20,18 +26,71 @@ def register(request):
         return redirect('dashboard')
 
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = RegisterForm(request.POST)
 
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Account created successfully.')
-            return redirect('dashboard')
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+
+            activation_link = request.build_absolute_uri(
+                reverse('activate_account', kwargs={
+                    'uidb64': uid,
+                    'token': token
+                })
+            )
+
+            subject = 'Activate your Job Tracker account'
+            message = f"""
+Hi {user.username},
+
+Thank you for creating an account.
+
+Please click this link to activate your account:
+
+{activation_link}
+
+If you did not create this account, you can ignore this email.
+"""
+
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+
+            messages.success(
+                request,
+                'Account created. Please check your email to activate your account.'
+            )
+            return redirect('login')
     else:
-        form = UserCreationForm()
+        form = RegisterForm()
 
     return render(request, 'registration/register.html', {'form': form})
-@login_required
+def activate_account(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except Exception:
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+
+        login(request, user)
+
+        messages.success(request, 'Your account has been activated successfully.')
+        return redirect('dashboard')
+
+    messages.error(request, 'Activation link is invalid or expired.')
+    return redirect('login')
 def dashboard(request):
     applications = JobApplication.objects.filter(user=request.user).order_by('-created_at')
 
