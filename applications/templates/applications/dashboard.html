@@ -1,0 +1,188 @@
+{% extends 'applications/base.html' %}
+
+{% block content %}
+
+<div class="hero-card p-4 p-md-5 mb-4">
+    <div class="hero-content">
+        <h1 class="display-6 fw-bold mb-2">
+            Your Job Application Dashboard
+        </h1>
+
+        <p class="mb-4 opacity-75">
+            Track every application, document, interview, rejection, and success in one clean place.
+        </p>
+
+        <a href="{% url 'add_application' %}" class="btn btn-light btn-lg btn-rounded fw-semibold">
+            <i class="bi bi-plus-circle"></i>
+            Add New Application
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-xl-2">
+        <div class="stat-card stat-total p-3">
+            <p class="mb-1 opacity-75">Total</p>
+            <h3 class="fw-bold mb-0">{{ total }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-xl-2">
+        <div class="stat-card stat-applied p-3">
+            <p class="mb-1 opacity-75">Applied</p>
+            <h3 class="fw-bold mb-0">{{ applied }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-xl-2">
+        <div class="stat-card stat-waiting p-3">
+            <p class="mb-1 opacity-75">Waiting</p>
+            <h3 class="fw-bold mb-0">{{ waiting }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-xl-2">
+        <div class="stat-card stat-interview p-3">
+            <p class="mb-1 opacity-75">Interviews</p>
+            <h3 class="fw-bold mb-0">{{ interviews }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-xl-2">
+        <div class="stat-card stat-rejected p-3">
+            <p class="mb-1 opacity-75">Rejected</p>
+            <h3 class="fw-bold mb-0">{{ rejected }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-xl-2">
+        <div class="stat-card stat-accepted p-3">
+            <p class="mb-1 opacity-75">Accepted</p>
+            <h3 class="fw-bold mb-0">{{ accepted }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="filter-card p-4 mb-4">
+    <h4 class="section-title mb-3">Search & Filter</h4>
+
+    <form method="get" class="row g-3">
+        <div class="col-md-6">
+            <input
+                type="text"
+                name="q"
+                class="form-control"
+                placeholder="Search by company, job title, location..."
+                value="{{ query }}"
+            >
+        </div>
+
+        <div class="col-md-4">
+            <select name="status" class="form-select">
+                <option value="">All statuses</option>
+                <option value="applied" {% if status_filter == 'applied' %}selected{% endif %}>Applied</option>
+                <option value="waiting" {% if status_filter == 'waiting' %}selected{% endif %}>Waiting</option>
+                <option value="interview" {% if status_filter == 'interview' %}selected{% endif %}>Interview</option>
+                <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>Accepted</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-dark w-100 btn-rounded">
+                Filter
+            </button>
+        </div>
+    </form>
+</div>
+
+<h3 class="section-title mb-3">My Applications</h3>
+
+{% if applications %}
+    <div class="row g-3">
+        {% for app in applications %}
+            <div class="col-lg-6">
+                <div class="application-card p-4 border-{{ app.status }}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4 class="fw-bold mb-1">{{ app.company_name }}</h4>
+                            <p class="text-muted mb-2">{{ app.job_title }}</p>
+                        </div>
+
+                        {% if app.status == 'applied' %}
+                            <span class="badge bg-primary badge-status">Applied</span>
+                        {% elif app.status == 'waiting' %}
+                            <span class="badge bg-secondary badge-status">Waiting</span>
+                        {% elif app.status == 'interview' %}
+                            <span class="badge bg-warning text-dark badge-status">Interview</span>
+                        {% elif app.status == 'rejected' %}
+                            <span class="badge bg-danger badge-status">Rejected</span>
+                        {% elif app.status == 'accepted' %}
+                            <span class="badge bg-success badge-status">Accepted</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <small class="small-muted">Application Date</small>
+                            <p class="fw-semibold">{{ app.application_date }}</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <small class="small-muted">Location</small>
+                            <p class="fw-semibold">{{ app.location|default:"No location" }}</p>
+                        </div>
+                    </div>
+
+                    {% if app.notes %}
+                        <div class="bg-light rounded-4 p-3 mt-2">
+                            <small class="small-muted">Notes</small>
+                            <p class="mb-0">{{ app.notes }}</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        {% if app.job_link %}
+                            <a href="{{ app.job_link }}" target="_blank" class="btn btn-outline-dark btn-sm file-pill">
+                                Job Link
+                            </a>
+                        {% endif %}
+
+                        {% if app.cv_file %}
+                            <a href="{{ app.cv_file.url }}" target="_blank" class="btn btn-outline-primary btn-sm file-pill">
+                                CV
+                            </a>
+                        {% endif %}
+
+                        {% if app.cover_letter_file %}
+                            <a href="{{ app.cover_letter_file.url }}" target="_blank" class="btn btn-outline-primary btn-sm file-pill">
+                                Cover Letter
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{% url 'edit_application' app.id %}" class="btn btn-success btn-sm btn-rounded">
+                            Edit
+                        </a>
+
+                        <a href="{% url 'delete_application' app.id %}" class="btn btn-danger btn-sm btn-rounded">
+                            Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-box text-center p-5">
+        <h4 class="fw-bold">No applications found</h4>
+        <p class="text-muted">Add your first job application.</p>
+
+        <a href="{% url 'add_application' %}" class="btn btn-primary btn-rounded">
+            Add First Application
+        </a>
+    </div>
+{% endif %}
+
+{% endblock %}
