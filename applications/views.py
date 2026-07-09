@@ -29,56 +29,10 @@ def register(request):
         form = RegisterForm(request.POST)
 
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False
-            user.save()
-
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            token = default_token_generator.make_token(user)
-
-            activation_link = request.build_absolute_uri(
-                reverse('activate_account', kwargs={
-                    'uidb64': uid,
-                    'token': token
-                })
-            )
-
-            subject = 'Activate your Job Tracker account'
-            message = f"""
-Hi {user.username},
-
-Thank you for creating an account.
-
-Please click this link to activate your account:
-
-{activation_link}
-
-If you did not create this account, you can ignore this email.
-"""
-
-            try:
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user.email],
-                    fail_silently=False,
-                )
-
-                messages.success(
-                    request,
-                    'Account created. Please check your email to activate your account.'
-                )
-                return redirect('login')
-
-            except Exception as error:
-                user.delete()
-                messages.error(
-                    request,
-                    'Account was not created because the verification email could not be sent. Please try again later.'
-                )
-                print("EMAIL ERROR:", error)
-
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Account created successfully. Welcome!')
+            return redirect('dashboard')
     else:
         form = RegisterForm()
 
